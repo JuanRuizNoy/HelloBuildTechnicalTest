@@ -1,0 +1,38 @@
+<template>
+    <lightning-card title="Contact List">
+        <lightning-spinner if:true={isLoading} alternative-text="Loading"></lightning-spinner>
+        
+        <lightning-input type="text" placeholder="Search Contacts" onchange={handleSearch}></lightning-input>
+        
+        <template if:true={contacts.length}>
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr>
+                        <th onclick={sortByName}>Name</th>
+                        <th onclick={sortByEmail}>Email</th>
+                        <th onclick={sortByPhone}>Phone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={contacts} for:item="contact">
+                        <tr key={contact.Id}>
+                            <td>{contact.Name}</td>
+                            <td>{contact.Email}</td>
+                            <td>{contact.Phone}</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <button onclick={previousPage}>Previous</button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button onclick={nextPage}>Next</button>
+            </div>
+        </template>
+        
+        <template if:true={error}>
+            <p class="error">{error}</p>
+        </template>
+    </lightning-card>
+</template>
