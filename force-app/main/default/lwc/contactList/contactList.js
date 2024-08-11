@@ -1,13 +1,34 @@
-import { LightningElement, wire, track } from 'lwc';
+import { LightningElement, track } from 'lwc';
 import getContacts from '@salesforce/apex/ContactController.getContacts';
 
 export default class ContactList extends LightningElement {
-    @track contacts = [];
+    @track contacts;
+    @track filteredContacts;
     @track error;
     @track isLoading = false;
+    @track sortBy = '';
+    @track sortDirection = 'asc';
     @track currentPage = 1;
-    @track totalPages = 0;
+    @track pageSize = 10;
+    @track totalPages = 1;
     @track searchKey = '';
+
+    get paginatedContacts() {
+        if (!this.filteredContacts) {
+            return [];
+        }
+        const startIndex = (this.currentPage - 1) * this.pageSize;
+        const endIndex = startIndex + this.pageSize;
+        return this.filteredContacts.slice(startIndex, endIndex);
+    }
+
+    get isFirstPage() {
+        return this.currentPage === 1;
+    }
+
+    get isLastPage() {
+        return this.currentPage === this.totalPages;
+    }
 
     connectedCallback() {
         this.loadContacts();
@@ -15,47 +36,85 @@ export default class ContactList extends LightningElement {
 
     loadContacts() {
         this.isLoading = true;
-        getContacts({ searchKey: this.searchKey, page: this.currentPage })
+        getContacts()
             .then(result => {
-                this.contacts = result.contacts;
-                this.totalPages = result.totalPages;
+                if (result) {
+                    this.contacts = result;
+                    this.filteredContacts = result;
+                    this.totalPages = Math.ceil(this.filteredContacts.length / this.pageSize);
+                    this.sortContacts();
+                }
                 this.isLoading = false;
             })
             .catch(error => {
-                this.error = error.body.message;
+                this.error = error?.body?.message || 'Error loading contacts';
                 this.isLoading = false;
             });
     }
 
-    handleSearch(event) {
-        this.searchKey = event.target.value;
+    handleSearchChange(event) {
+        this.searchKey = event.target.value.toLowerCase();
+        this.filterContacts();
+    }
+
+    filterContacts() {
+        if (this.searchKey) {
+            this.filteredContacts = this.contacts.filter(contact =>
+                contact.Name.toLowerCase().includes(this.searchKey)
+            );
+        } else {
+            this.filteredContacts = this.contacts;
+        }
+        this.totalPages = Math.ceil(this.filteredContacts.length / this.pageSize);
         this.currentPage = 1;
-        this.loadContacts();
+        this.sortContacts();
     }
 
     sortByName() {
-        this.contacts.sort((a, b) => a.Name.localeCompare(b.Name));
+        this.sortBy = 'Name';
+        this.toggleSortDirection();
+        this.sortContacts();
     }
 
     sortByEmail() {
-        this.contacts.sort((a, b) => a.Email.localeCompare(b.Email));
+        this.sortBy = 'Email';
+        this.toggleSortDirection();
+        this.sortContacts();
     }
 
     sortByPhone() {
-        this.contacts.sort((a, b) => a.Phone.localeCompare(b.Phone));
+        this.sortBy = 'Phone';
+        this.toggleSortDirection();
+        this.sortContacts();
+    }
+
+    sortContacts() {
+        if (!this.filteredContacts) {
+            return;
+        }
+        const isReverse = this.sortDirection === 'desc' ? 1 : -1;
+        this.filteredContacts = [...this.filteredContacts].sort((a, b) => {
+            if (a[this.sortBy] > b[this.sortBy]) return isReverse;
+            if (a[this.sortBy] < b[this.sortBy]) return -isReverse;
+            return 0;
+        });
+        this.totalPages = Math.ceil(this.filteredContacts.length / this.pageSize);
+        this.currentPage = 1;
+    }
+
+    toggleSortDirection() {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     }
 
     previousPage() {
         if (this.currentPage > 1) {
-            this.currentPage--;
-            this.loadContacts();
+            this.currentPage -= 1;
         }
     }
 
     nextPage() {
         if (this.currentPage < this.totalPages) {
-            this.currentPage++;
-            this.loadContacts();
+            this.currentPage += 1;
         }
     }
 }

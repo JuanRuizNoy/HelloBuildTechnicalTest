@@ -1,20 +1,24 @@
 <template>
     <lightning-card title="Contact List">
+        <lightning-input
+            label="Search by Name"
+            placeholder="Enter name..."
+            onchange={handleSearchChange}>
+        </lightning-input>
+        
         <lightning-spinner if:true={isLoading} alternative-text="Loading"></lightning-spinner>
         
-        <lightning-input type="text" placeholder="Search Contacts" onchange={handleSearch}></lightning-input>
-        
-        <template if:true={contacts.length}>
-            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+        <template if:true={contacts}>
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
                 <thead>
                     <tr>
-                        <th onclick={sortByName}>Name</th>
-                        <th onclick={sortByEmail}>Email</th>
-                        <th onclick={sortByPhone}>Phone</th>
+                        <th onclick={sortByName} class="sortable">Name</th>
+                        <th onclick={sortByEmail} class="sortable">Email</th>
+                        <th onclick={sortByPhone} class="sortable">Phone</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <template for:each={contacts} for:item="contact">
+                    <template for:each={paginatedContacts} for:item="contact">
                         <tr key={contact.Id}>
                             <td>{contact.Name}</td>
                             <td>{contact.Email}</td>
@@ -23,16 +27,15 @@
                     </template>
                 </tbody>
             </table>
-
-            <div class="pagination">
-                <button onclick={previousPage}>Previous</button>
+            <div class="pagination-controls">
+                <button onclick={previousPage} disabled={isFirstPage}>Previous</button>
                 <span>Page {currentPage} of {totalPages}</span>
-                <button onclick={nextPage}>Next</button>
+                <button onclick={nextPage} disabled={isLastPage}>Next</button>
             </div>
         </template>
         
         <template if:true={error}>
-            <p class="error">{error}</p>
+            <p>{error}</p>
         </template>
     </lightning-card>
 </template>

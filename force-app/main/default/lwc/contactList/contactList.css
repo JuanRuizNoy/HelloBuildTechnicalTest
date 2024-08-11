@@ -1,0 +1,45 @@
+.slds-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.slds-table th {
+    cursor: pointer;
+}
+
+.slds-table th.sortable:hover {
+    background-color: #e0e0e0;
+}
+
+.slds-table td, .slds-table th {
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.slds-table_bordered td, .slds-table_bordered th {
+    border: 1px solid #d8dde6;
+}
+
+.slds-table tbody tr:hover {
+    background-color: #f7f7f9;
+}
+
+.pagination-controls {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.pagination-controls button {
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d8dde6;
+    background-color: #f3f2f2;
+    cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+

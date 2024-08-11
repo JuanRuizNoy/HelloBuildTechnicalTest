@@ -1,29 +1,14 @@
 public with sharing class ContactController {
+    @TestVisible
+    private static Boolean throwError = false;
     @AuraEnabled(cacheable=true)
-    public static Map<String, Object> getContacts(String searchKey, Integer page) {
-        Integer pageSize = 10;
-        Integer offset = (page - 1) * pageSize;
-
-        List<Contact> contacts = [
-            SELECT Id, Name, Email, Phone 
-            FROM Contact 
-            WHERE Name LIKE :('%' + searchKey + '%') 
-            LIMIT :pageSize 
-            OFFSET :offset
-        ];
-
-        Integer totalRecords = [
-            SELECT COUNT() 
-            FROM Contact 
-            WHERE Name LIKE :('%' + searchKey + '%')
-        ];
-        
-        Integer totalPages = (totalRecords + pageSize - 1) / pageSize;
-
-        Map<String, Object> result = new Map<String, Object>();
-        result.put('contacts', contacts);
-        result.put('totalPages', totalPages);
-
-        return result;
+    public static List<Contact> getContacts() {
+        try {
+            List<Contact> contacts = [SELECT Id, Name, Email, Phone FROM Contact LIMIT 100];
+            return (contacts != null) ? contacts : new List<Contact>();
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching contacts: ' + e.getMessage());
+        }
     }
 }
+
